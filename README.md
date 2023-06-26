@@ -2,8 +2,8 @@
 记录自己日常的学习笔记，也为大家提供一个复习八股文，学习基础和进阶知识的 git 仓库，会持续更新，欢迎大家 star 和 fork，也欢迎大家关注我的 [掘金](https://juejin.cn/user/730548027266311/posts) 和 [CSDN](https://blog.csdn.net/XNHYJSL?type=blog) 账号，掘金账号记录一些进阶知识点，CSDN 侧重记录一些 bug 和基础知识点
 
 ## `JS 笔记`
-*[JS数据类型](https://github.com/W1ping/Blog/blob/master/JS/JS%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B.md)
-*[null和undefined的区别](https://github.com/W1ping/Blog/blob/master/JS/null%E5%92%8Cundefined%E7%9A%84%E5%8C%BA%E5%88%AB.md)
+* [JS数据类型](https://github.com/W1ping/Blog/blob/master/JS/JS%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B.md)
+* [null和undefined的区别](https://github.com/W1ping/Blog/blob/master/JS/null%E5%92%8Cundefined%E7%9A%84%E5%8C%BA%E5%88%AB.md)
 ## `HTML 笔记`
 
 ## `CSS 笔记`
