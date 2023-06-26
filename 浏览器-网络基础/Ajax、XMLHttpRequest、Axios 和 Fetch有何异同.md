@@ -4,13 +4,7 @@
 
 为了更好地理解 Ajax、XMLHttpRequest、Axios 和 Fetch 之间的关系，我们先看下面的关系包含图。
 
-```mermaid
-<script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
-graph TD
-    Ajax("Ajax") --> XMLHttpRequest("XMLHttpRequest")
-    Ajax("Ajax") --> Axios("Axios")
-    Ajax("Ajax") --> Fetch("Fetch")
-```
+![包含关系](../assets/image/browser%26net/ajax-relation.png)
 
 XMLHttpRequest、Axios 和 Fetch 三个工具，它们都是基于 Ajax 概念实现数据的异步通信，同时 Ajax 也是他们的共同基础。
 
