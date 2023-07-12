@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>echarts-china-map</title>
+    <meta name="referrer" content="no-referrer" />
+    <!-- echarts -->
+    <script src="https://cdn.bootcdn.net/ajax/libs/echarts/4.8.0/echarts-en.js"></script>
+    <!-- Import style -->
+    <link rel="stylesheet" href="https://unpkg.com/element-plus/dist/index.css" />
+    <!-- Import Vue 3 -->
+    <script src="https://unpkg.com/vue@3"></script>
+    <!-- Import component library -->
+    <script src="https://unpkg.com/element-plus"></script>
+    <!-- 省市区数据 -->
+    <script src="https://unpkg.com/element-china-area-data@6.0.0/dist/element-china-area-data.iife.js"></script>
+
+    <!-- style -->
+    <style>
+      #app {
+        padding: 20px 50px;
+      }
+      .main {
+        height: 80vh;
+        padding: 20px;
+        border-radius: 20px;
+        background-color: #f8f8f8;
+        box-sizing: border-box;
+      }
+      .main__title {
+        text-align: center
+      }
+      .main__map {
+        display: flex;
+        flex-direction: column;
+        padding: 20px 400px;
+        height: 100%;
+        box-sizing: border-box;
+      }
+      .main__map__tools {
+        display: flex;
+        line-height: 32px;
+        justify-content: space-between;
+        color: #000;
+        height: 35px;
+        flex-shrink: 0;
+      }
+      .main__map__curr-area {
+        font-weight: 600px;
+      }
+      .main__map__button {
+        line-height: 34px !important;
+        color: #000;
+        cursor: pointer;
+        padding: 0 5px;
+        margin: 0 5px;
+        opacity: 0.8;
+        line-height: 20px;
+        transition: border-bottom 0.3s;
+        box-sizing: border-box;
+      }
+      .main__map__button:hover {
+        transition: border-bottom 0.3s;
+        border-bottom: #000 1px solid;
+      }
+      .main__map__echarts--map {
+        flex: 1;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app">
+      <section class="main">
+        <h1 class="main__title">echarts-china-map</h1>
+        <div v-loading="mapLoading" class="main__map">
+          <div class="main__map__tools">
+            <div class="main__map__select">
+              <el-cascader
+                clearable
+                :props="cascaderProps"
+                :options="regionData"
+                @change="selectChange"
+                v-model="selectedOptions">
+              </el-cascader>
+            </div>
+            <div class="main__map__curr-area">
+              当前区域: {{ currArea }}
+            </div>
+            <div class="main__map__button main__button" @click="backToAll">
+              返回全国
+            </div>
+          </div>
+          <div class="main__map__echarts--map" id="echarts__map"></div>
+        </div>
+      </section>
+    </div>
+    <script type="module">
+      const { createApp, ref, reactive, computed, onMounted, nextTick } = Vue
+      const chinaMapCode = '100000_full'
+      // 一些特殊需要转换的 mapCode ，直辖市都需要转换
+      const specialMapCode = {
+        '1101': '1100',
+        '1201': '1200',
+        '3101': '3100',
+        '5001': '5000',
+        '5002': '5000'
+      }
+      const composition = {
+        setup() {
+          const regionData = elementChinaAreaData.regionData
+          const selectedOptions = ref([])
+          const cascaderProps = { checkStrictly: true }
+          const currArea = ref('全国')
+          const selectChange = value => {
+            // 取 value 最后一位，即为所选中的 省市区 ，如果没有则默认为全国
+            const currValue = value ? value[value.length - 1] : chinaMapCode
+            // codeToText api 把 value 转化成中文
+            currArea.value = elementChinaAreaData.codeToText[currValue] || '全国'
+            const currMapCode = padMapCode(currValue)
+            getMapJson(currMapCode)
+          }
+
+          // dataV geoJSON 长度都是 6 位，不足6位补0，到了县或区级的时候已经是 6位 且不需要 _full 后缀
+          const padMapCode = value => {
+            // 直辖市 特殊处理才能和 dataV 数据联动
+            let currValue = specialMapCode[value] || value
+            return currValue.length < 6 ? currValue += `${'0'.repeat(6 - currValue.length)}_full` : currValue
+          }
+          // element-china-area-data 和 dataV geoJSON 配合动态获取 省市区 的地图数据
+          const getMapJson = mapCode => {
+            mapLoading.value = true
+            fetchGetMapJson(`https://geo.datav.aliyun.com/areas_v3/bound/${mapCode}.json`).then(res => {
+              mapLoading.value = false
+              echarts.registerMap('map', res)
+              initEcharts('echarts__map', mapOptions)
+            })
+          }
+          // 返回全国
+          const backToAll = _ => {
+            if(!selectedOptions.value.length) return
+            currArea.value = '全国'
+            selectedOptions.value = []
+            getMapJson(chinaMapCode)
+          }
+          const mapLoading = ref(false)
+
+          const initEcharts = (id, options) => {
+            console.log(id, options, echarts.init(document.getElementById(id)))
+            echarts.init(document.getElementById(id)).clear()
+            echarts.init(document.getElementById(id)).setOption(options)
+          }
+
+          const fetchGetMapJson = url => {
+            return fetch(url, {
+              method: 'GET'
+            }).then(readableStream => {
+              if(readableStream.ok) return readableStream.json()
+              else return false
+            })
+          }
+
+          // echart map options
+          const mapOptions = {
+            tooltip: {
+              formatter: function (e, t, n) { 
+                return `${e.seriesName }<br />${e.name} ： ${e.value || 0}`
+              },
+            },
+            visualMap: {
+              min: 0,
+              max: 1000,
+              left: 26,
+              bottom: 40,
+              showLabel: !0,
+              text: ["高", "低"],
+              pieces: [
+                {
+                  gt: 100,
+                  label: "> 100 人",
+                  color: "#7f1100",
+                },
+                {
+                  gte: 10,
+                  lte: 100,
+                  label: "10 - 100 人",
+                  color: "#ff5428",
+                },
+                {
+                  gte: 1,
+                  lt: 10,
+                  label: "1 - 9 人",
+                  color: "#ff8c71",
+                },
+                {
+                  value: 0,
+                  color: "#ffffff",
+                },
+              ],
+              show: !0,
+            },
+            geo: {
+              map: "map", // 需要和registerMap中的第一个参数保持一致
+              roam: true, // 设置允许缩放以及拖动的效果
+              label: {
+                show: true, //展示标签
+              },
+              zoom: 1, //设置初始化的缩放比例
+              scaleLimit: {
+                min: 1,
+                max: 3,
+              },
+              itemStyle: {
+                areaColor: "rgb(210, 215, 221)",
+              },
+              label: {
+                show: true,
+                width: 20,
+                color: "#fff",
+                overflow: "break",
+                fontSize: 12,
+              },
+              emphasis: {
+                disabled: false,
+                itemStyle: {
+                  areaColor: "#71d4ff",
+                },
+              },
+            },
+            series: [
+              {
+                name: "帅逼数",
+                type: "map",
+                geoIndex: 0,
+                data: [{name: '广东省', value: 99999999}]
+              },
+            ],
+          }
+          
+          // 默认全国地图
+          getMapJson(chinaMapCode)
+          return {
+            regionData,
+            selectedOptions,
+            cascaderProps,
+            currArea,
+            selectChange,
+            backToAll,
+            mapLoading
+          }
+        }
+      }
+      createApp(composition).use(ElementPlus).mount("#app")
+    </script>
+  </body>
+</html>

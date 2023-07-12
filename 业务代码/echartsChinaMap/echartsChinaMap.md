@@ -1,0 +1,2 @@
+# echarts map 中国地图省市区
+技术实现 [element-china-area-data](https://www.npmjs.com/package/element-china-area-data) 配合 [dataV](https://datav.aliyun.com/portal/school/atlas/area_selector) 在线数据 实现对中国 省市区每一级地图的实时选择
