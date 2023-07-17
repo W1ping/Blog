@@ -73,7 +73,7 @@
   <body>
     <div id="app">
       <section class="main">
-        <h1 class="main__title">echarts-china-map</h1>
+        <h1 class="main__title">echarts-China-map</h1>
         <div v-loading="mapLoading" class="main__map">
           <div class="main__map__tools">
             <div class="main__map__select">
@@ -101,11 +101,11 @@
       const chinaMapCode = '100000_full'
       // 一些特殊需要转换的 mapCode ，直辖市都需要转换
       const specialMapCode = {
-        '1101': '1100',
-        '1201': '1200',
-        '3101': '3100',
-        '5001': '5000',
-        '5002': '5000'
+        '1101': '11',
+        '1201': '12',
+        '3101': '31',
+        '5001': '50',
+        '5002': '50'
       }
       const composition = {
         setup() {
@@ -147,7 +147,6 @@
           const mapLoading = ref(false)
 
           const initEcharts = (id, options) => {
-            console.log(id, options, echarts.init(document.getElementById(id)))
             echarts.init(document.getElementById(id)).clear()
             echarts.init(document.getElementById(id)).setOption(options)
           }
